@@ -1,0 +1,28 @@
+#+TITLE: gdb-x.el --- Improve GDB-MI user interface
+#+OPTIONS: toc:nil
+
+Extra utilities for improving the user interface of gdb-mi.el.
+
+This package improves upon the defaults provided by =gdb-mi=.
+
+- It ensures that sources lines to be executed are centred on the buffers displaying them.
+- Restores the window configuration prior to starting the GDB session.
+- Updates =hl-line= in disassembly buffers.
+
+* Installation
+Add this to your configuration file:
+#+begin_src emacs-lisp
+(use-package gdb-x
+  :straight (:type git :host codeberg :repo "shepherd/gdb-x")
+  :demand t
+  :general
+  (:keymaps
+   '(gud-mode-map gud-minor-mode-map)
+   "C-c C-'" 'gdb-x-many-windows-mode
+   "C-c C-q" 'gdb-x-gud-quit))
+#+end_src
+
+* Usage
+Run ~gdb-x-many-windows-mode~ in a GDB session. This is meant to replace the use case of ~gdb-many-windows~.
+
+To exit GDB use ~gdb-x-gud-quit~ bound to =C-c C-q= in ~gdb-x-many-windows-mode-map~.
