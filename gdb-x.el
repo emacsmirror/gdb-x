@@ -85,15 +85,16 @@ Also ensure that the last executed line is centred."
   (gud-basic-call "quit"))
 
 (add-hook 'gud-mode-hook
-	      (lambda ()
-	        (gud-tooltip-mode)
-	        (window-configuration-to-register gdb-x--gud-window-register)))
+	      #'(lambda ()
+	          (gud-tooltip-mode)
+	          (window-configuration-to-register gdb-x--gud-window-register)))
 
-(advice-add 'gud-sentinel :after
-	        (lambda (proc _)
-		      (when (memq (process-status proc) '(signal exit))
-		        (jump-to-register gdb-x--gud-window-register)
-		        (bury-buffer))))
+(advice-add #'gud-sentinel :after
+	        #'(lambda (proc _)
+		        (when (memq (process-status proc) '(signal exit))
+                  (gdb-x-many-windows-mode -1)
+		          (jump-to-register gdb-x--gud-window-register)
+		          (bury-buffer))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
