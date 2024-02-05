@@ -209,7 +209,8 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
       (set-frame-parameter
        nil 'window-state (window-state-get (frame-root-window nil)))
       (let ((ignore-window-parameters t))
-        (delete-other-windows (window-main-window nil))))))
+        (delete-other-windows (window-main-window nil))
+        (select-window (gdb-x--display-gdb-buffer))))))
 
 
 (provide 'gdb-x)
