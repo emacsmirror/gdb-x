@@ -187,6 +187,21 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
 			                0
 			                80))
 
+(defvar gdb-x--display-terminal-buffer-action
+  `((lambda (buffer-name _)
+      (with-current-buffer buffer-name
+        (apply #'derived-mode-p
+               '(eshell-mode vterm-mode shell-mode eat-mode))))
+    (display-buffer-reuse-mode-window
+     display-buffer-in-side-window)
+    (mode . (gdb-inferior-io-mode eshell-mode vterm-mode shell-mode eat-mode))
+    (slot . 1)
+    (side . bottom)
+    (window-width . 0.5)
+	(window-parameters
+	 (no-delete-other-windows . t)))
+  "`display-buffer' action used when GDB displays a terminal buffer.")
+
 ;;;###autoload
 (define-minor-mode gdb-x-many-windows-mode
   "Minor mode to toggle the display of all relevant GUD side windows."
@@ -200,6 +215,8 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
           (display-buffer-full-frame gdb-src-buf nil)
           (setq gdb-source-window-list (list
                                         (get-buffer-window gdb-src-buf))))
+        (add-to-list 'display-buffer-alist
+                     gdb-x--display-terminal-buffer-action)
         (gdb-x--display-breakpoints-buffer)
         (gdb-x--display-disassembly-buffer)
         (gdb-x--display-locals-buffer)
@@ -207,6 +224,8 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
         (gdb-x--display-io-buffer)
         (select-window (gdb-x--display-gdb-buffer)))
     (let ((window--sides-inhibit-check t))
+      (setq display-buffer-alist (remove gdb-x--display-terminal-buffer-action
+                                         display-buffer-alist))
       (set-frame-parameter
        nil 'window-state (window-state-get (frame-root-window nil)))
       (let ((ignore-window-parameters t))
