@@ -126,43 +126,43 @@ WIDTH."
 Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   (interactive)
   (gdb-x--display-side-buffer (gdb-get-buffer-create 'gdb-locals-buffer thread)
-			                'left
-			                0
-			                0.15))
+			                  'left
+			                  0
+			                  0.15))
 
 (defun gdb-x--display-breakpoints-buffer (&optional thread)
   "Display GDB breakpoints.
 Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   (interactive)
   (gdb-x--display-side-buffer (gdb-get-buffer-create 'gdb-breakpoints-buffer thread)
-			                'left
-			                1
-			                0.15))
+			                  'left
+			                  1
+			                  0.15))
 
 (defun gdb-x--display-stack-buffer (&optional thread)
   "Display GDB backtrace for current stack.
 Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   (interactive)
   (gdb-x--display-side-buffer (gdb-get-buffer-create 'gdb-stack-buffer thread)
-			                'left
-			                2
-			                0.15))
+			                  'left
+			                  2
+			                  0.15))
 
 (defun gdb-x--display-gdb-buffer ()
   "Display GUD buffer."
   (interactive)
   (gdb-x--display-side-buffer gud-comint-buffer
-			                'bottom
-			                0
-			                0.5))
+			                  'bottom
+			                  0
+			                  0.5))
 
 (defun gdb-x--display-io-buffer ()
   "Display IO of debugged program in a separate window."
   (interactive)
   (gdb-x--display-side-buffer (gdb-get-buffer-create 'gdb-inferior-io)
-			                'bottom
-			                1
-			                0.5))
+			                  'bottom
+			                  1
+			                  0.5))
 
 (defun gdb-x--get-non-dedicated-windows ()
   "Get Emacs windows that are not dedicated windows."
@@ -190,9 +190,9 @@ WIDTH."
 Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   (interactive)
   (gdb-x--display-side-buffer (gdb-get-buffer-create 'gdb-disassembly-buffer thread)
-			                'right
-			                0
-			                80))
+			                  'right
+			                  0
+			                  80))
 
 (defvar gdb-x--display-terminal-buffer-action
   `((or (derived-mode . eshell-mode)
