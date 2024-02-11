@@ -123,20 +123,20 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
 			                0
 			                0.15))
 
-(defun gdb-x--display-stack-buffer (&optional thread)
-  "Display GDB backtrace for current stack.
-Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
-  (interactive)
-  (gdb-x--display-side-buffer (gdb-get-buffer-create 'gdb-stack-buffer thread)
-			                'left
-			                1
-			                0.15))
-
 (defun gdb-x--display-breakpoints-buffer (&optional thread)
   "Display GDB breakpoints.
 Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   (interactive)
   (gdb-x--display-side-buffer (gdb-get-buffer-create 'gdb-breakpoints-buffer thread)
+			                'left
+			                1
+			                0.15))
+
+(defun gdb-x--display-stack-buffer (&optional thread)
+  "Display GDB backtrace for current stack.
+Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
+  (interactive)
+  (gdb-x--display-side-buffer (gdb-get-buffer-create 'gdb-stack-buffer thread)
 			                'left
 			                2
 			                0.15))
