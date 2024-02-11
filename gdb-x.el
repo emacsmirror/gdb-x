@@ -188,18 +188,17 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
 			                80))
 
 (defvar gdb-x--display-terminal-buffer-action
-  `((lambda (buffer-name _)
-      (with-current-buffer buffer-name
-        (apply #'derived-mode-p
-               '(eshell-mode vterm-mode shell-mode eat-mode))))
+  `((or (derived-mode . eshell-mode)
+        (derived-mode . vterm-mode)
+        (derived-mode . shell-mode)
+        (derived-mode . eat-mode))
     (display-buffer-reuse-mode-window
      display-buffer-in-side-window)
     (mode . (gdb-inferior-io-mode eshell-mode vterm-mode shell-mode eat-mode))
     (slot . 1)
     (side . bottom)
     (window-width . 0.5)
-	(window-parameters
-	 (no-delete-other-windows . t)))
+	(window-parameters . ((no-delete-other-windows . t))))
   "`display-buffer' action used when GDB displays a terminal buffer.")
 
 ;;;###autoload
