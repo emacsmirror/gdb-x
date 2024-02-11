@@ -100,19 +100,26 @@ Also ensure that the last executed line is centred."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Many windows arrangement. ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defvar gdb-x-hide-mode-line t
+  "Whether to hide the mode-line for `gdb-x-many-windows-mode' buffers.")
+
 (defun gdb-x--display-side-buffer (buf direction slot width)
   "Show buffer BUF, and make that window a side window.
 Read `display-buffer' for more information on the meaning of DIRECTION, SLOT and
 WIDTH."
   (let ((buf-mode (with-current-buffer buf
-		            major-mode)))
+		            major-mode))
+        (mode-line-fmt (when gdb-x-hide-mode-line
+                         '(mode-line-format . none))))
     (display-buffer-in-side-window buf
 				                   `((mode . ,buf-mode)
 				                     (side . ,direction)
 				                     (slot . ,slot)
 				                     (window-width . ,width)
 				                     (window-parameters
-					                  (no-delete-other-windows . t))))))
+                                      .
+					                  (,mode-line-fmt
+                                       (no-delete-other-windows . t)))))))
 
 (defun gdb-x--display-locals-buffer (&optional thread)
   "Display the local variables of current GDB stack.
