@@ -55,18 +55,17 @@ executed."
 (defun gdb-x--disassembly-highlight-and-recenter ()
   "Make sure that `hl-line' gets updated after updating disassembly buffer.
 Also ensure that the last executed line is centred."
-  (let* ((buffer (gdb-get-buffer 'gdb-disassembly-buffer))
-	     (window (get-buffer-window buffer 0)))
-    (when (and window (featurep 'hl-line))
-	  (with-current-buffer buffer
-	    (cond
+  (when-let* ((window (get-buffer-window
+                       (gdb-get-buffer 'gdb-disassembly-buffer)))
+              (featurep 'hl-line))
+	(with-selected-window window
+      (when (marker-position gdb-disassembly-position)
+        (cond
 	     (global-hl-line-mode
-	      (goto-char gdb-disassembly-position)
 	      (global-hl-line-highlight))
 	     ((and hl-line-mode hl-line-sticky-flag)
-	      (goto-char gdb-disassembly-position)
-	      (hl-line-highlight))))
-	  (with-selected-window window
+	      (hl-line-highlight)))
+	    (goto-char gdb-disassembly-position)
 	    (recenter)))))
 
 (advice-add #'gdb-disassembly-handler-custom :after
