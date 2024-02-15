@@ -102,6 +102,10 @@ Also ensure that the last executed line is centred."
 (defvar gdb-x-hide-mode-line t
   "Whether to hide the mode-line for `gdb-x-many-windows-mode' buffers.")
 
+(defun gdb-x--get-non-dedicated-windows ()
+  "Get Emacs windows that are not dedicated windows."
+  (seq-filter #'(lambda (win) (not (window-dedicated-p win))) (window-list)))
+
 (defun gdb-x--fit-window-to-buffer (buffer &optional preserve horizontal)
   "Advice for fitting assembly window to BUFFER after every update.
 If PRESERVE is t, mark window size as preserved.  For more info read
@@ -115,7 +119,7 @@ If HORIZONTAL is t, allow resizing the buffer width-wise."
     (when preserve
       (window-preserve-size window horizontal t))))
 
-(defun gdb-x--display-side-buffer (buf direction slot width)
+(defun gdb-x--display-in-side-window (buf direction slot width)
   "Show buffer BUF, and make that window a side window.
 Read `display-buffer' for more information on the meaning of DIRECTION, SLOT and
 WIDTH."
@@ -133,57 +137,28 @@ WIDTH."
 					                  (,mode-line-fmt
                                        (no-delete-other-windows . t)))))))
 
-(defun gdb-x--display-locals-buffer (&optional thread)
-  "Display the local variables of current GDB stack.
-Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
-  (interactive)
-  (let ((buffer 'gdb-locals-buffer))
-    (gdb-x--display-side-buffer (gdb-get-buffer-create buffer thread)
-			                    'left
-			                    0
-			                    0.15)))
+(defun gdb-x--display-buffer-in-direction (buf direction width)
+  "Show buffer BUF, and make that window a side window.
+Read `display-buffer' for more information on the meaning of DIRECTION, SLOT and
+WIDTH."
+  (when-let ((buf-mode (with-current-buffer buf
+		                 major-mode))
+	         (parent (or (car gdb-source-window-list)
+		                 (car (gdb-x--get-non-dedicated-windows))))
+             (mode-line-fmt (when gdb-x-hide-mode-line
+                              '(mode-line-format . none))))
+    (display-buffer-in-direction buf
+				                 `((mode . ,buf-mode)
+                                   (dedicated . t)
+				                   (direction . ,direction)
+				                   (window . ,parent)
+				                   (window-width . ,width)
+                                   (window-parameters
+                                    .
+					                (,mode-line-fmt
+                                     (no-delete-other-windows . t)))))))
 
-(defun gdb-x--display-breakpoints-buffer (&optional thread)
-  "Display GDB breakpoints.
-Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
-  (interactive)
-  (let ((buffer 'gdb-breakpoints-buffer))
-    (gdb-x--display-side-buffer (gdb-get-buffer-create buffer thread)
-			                    'left
-			                    1
-			                    0.15)))
-
-(defun gdb-x--display-stack-buffer (&optional thread)
-  "Display GDB backtrace for current stack.
-Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
-  (interactive)
-  (let ((buffer 'gdb-stack-buffer))
-    (gdb-x--display-side-buffer (gdb-get-buffer-create buffer thread)
-			                    'left
-			                    2
-			                    0.15)))
-
-(defun gdb-x--display-gdb-buffer ()
-  "Display GUD buffer."
-  (interactive)
-  (gdb-x--display-side-buffer gud-comint-buffer
-			                  'bottom
-			                  0
-			                  0.5))
-
-(defun gdb-x--display-io-buffer ()
-  "Display IO of debugged program in a separate window."
-  (interactive)
-  (gdb-x--display-side-buffer (gdb-get-buffer-create 'gdb-inferior-io)
-			                  'bottom
-			                  1
-			                  0.5))
-
-(defun gdb-x--get-non-dedicated-windows ()
-  "Get Emacs windows that are not dedicated windows."
-  (seq-filter #'(lambda (win) (not (window-dedicated-p win))) (window-list)))
-
-(defun gdb-x--display-atom-buffer (buf direction slot width)
+(defun gdb-x--display-in-atom-window (buf direction slot width)
   "Show buffer BUF, and make that window a side window.
 Read `display-buffer' for more information on the meaning of DIRECTION, SLOT and
 WIDTH."
@@ -206,49 +181,74 @@ WIDTH."
 					                  (,mode-line-fmt
                                        (no-delete-other-windows . t)))))))
 
-(defun gdb-x--display-disassembly-buffer (&optional thread)
+(defun gdb-x-display-locals-buffer (&optional thread)
+  "Display the local variables of current GDB stack.
+Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
+  (interactive)
+  (let ((buffer 'gdb-locals-buffer))
+    (gdb-x--display-in-side-window (gdb-get-buffer-create buffer thread)
+			                       'left
+			                       0
+			                       0.15)))
+
+(defun gdb-x-display-breakpoints-buffer (&optional thread)
+  "Display GDB breakpoints.
+Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
+  (interactive)
+  (let ((buffer 'gdb-breakpoints-buffer))
+    (gdb-x--display-in-side-window (gdb-get-buffer-create buffer thread)
+			                       'left
+			                       1
+			                       0.15)))
+
+(defun gdb-x-display-stack-buffer (&optional thread)
+  "Display GDB backtrace for current stack.
+Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
+  (interactive)
+  (let ((buffer 'gdb-stack-buffer))
+    (gdb-x--display-in-side-window (gdb-get-buffer-create buffer thread)
+			                       'left
+			                       2
+			                       0.15)))
+
+(defun gdb-x-display-gdb-buffer ()
+  "Display GUD buffer."
+  (interactive)
+  (gdb-x--display-in-side-window gud-comint-buffer
+			                     'bottom
+			                     0
+			                     0.5))
+
+(defun gdb-x-display-io-buffer ()
+  "Display IO of debugged program in a separate window."
+  (interactive)
+  (gdb-x--display-in-side-window (gdb-get-buffer-create 'gdb-inferior-io)
+			                     'bottom
+			                     1
+			                     0.5))
+
+(defun gdb-x-display-disassembly-buffer (&optional thread)
   "Display GDB disassembly information.
 Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   (interactive)
   (let ((buffer 'gdb-disassembly-buffer))
-    (gdb-x--display-side-buffer (gdb-get-buffer-create buffer thread)
-			                    'right
-			                    0
-			                    80)
+    (gdb-x--display-in-side-window (gdb-get-buffer-create buffer thread)
+			                       'right
+			                       0
+			                       80)
     (advice-add #'gdb-disassembly-handler-custom
                 :after
                 #'(lambda (&rest _)
                     (gdb-x--fit-window-to-buffer buffer t t)))))
 
-(defun gdb-x--display-direction-buffer (buf direction width)
-  "Show buffer BUF, and make that window a side window.
-Read `display-buffer' for more information on the meaning of DIRECTION, SLOT and
-WIDTH."
-  (when-let ((buf-mode (with-current-buffer buf
-		               major-mode))
-	       (parent (or (car gdb-source-window-list)
-		               (car (gdb-x--get-non-dedicated-windows))))
-           (mode-line-fmt (when gdb-x-hide-mode-line
-                            '(mode-line-format . none))))
-      (display-buffer-in-direction buf
-				                   `((mode . ,buf-mode)
-                                     (dedicated . t)
-				                     (direction . ,direction)
-				                     (window . ,parent)
-				                     (window-width . ,width)
-                                     (window-parameters
-                                      .
-					                  (,mode-line-fmt
-                                       (no-delete-other-windows . t)))))))
-
-(defun gdb-x--display-registers-buffer (&optional thread)
+(defun gdb-x-display-registers-buffer (&optional thread)
   "Display GDB disassembly information.
 Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   (interactive)
   (let ((buffer 'gdb-registers-buffer))
-    (gdb-x--display-direction-buffer (gdb-get-buffer-create buffer thread)
-			                         'right
-			                         17)
+    (gdb-x--display-buffer-in-direction (gdb-get-buffer-create buffer thread)
+			                            'right
+			                            17)
     (advice-add #'gdb-registers-handler-custom
                 :after
                 #'(lambda (&rest _)
@@ -283,13 +283,13 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
                                         (get-buffer-window gdb-src-buf))))
         (add-to-list 'display-buffer-alist
                      gdb-x--display-terminal-buffer-action)
-        (gdb-x--display-breakpoints-buffer)
-        (gdb-x--display-disassembly-buffer)
-        (gdb-x--display-registers-buffer)
-        (gdb-x--display-locals-buffer)
-        (gdb-x--display-stack-buffer)
-        (gdb-x--display-io-buffer)
-        (select-window (gdb-x--display-gdb-buffer)))
+        (gdb-x-display-breakpoints-buffer)
+        (gdb-x-display-disassembly-buffer)
+        (gdb-x-display-registers-buffer)
+        (gdb-x-display-locals-buffer)
+        (gdb-x-display-stack-buffer)
+        (gdb-x-display-io-buffer)
+        (select-window (gdb-x-display-gdb-buffer)))
     (let ((window--sides-inhibit-check t))
       (setq display-buffer-alist (remove gdb-x--display-terminal-buffer-action
                                          display-buffer-alist))
@@ -297,7 +297,7 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
        nil 'window-state (window-state-get (frame-root-window nil)))
       (let ((ignore-window-parameters t))
         (delete-other-windows (window-main-window nil))
-        (select-window (gdb-x--display-gdb-buffer))))))
+        (select-window (gdb-x-display-gdb-buffer))))))
 
 
 (provide 'gdb-x)
