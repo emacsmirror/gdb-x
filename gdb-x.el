@@ -108,10 +108,10 @@ Also ensure that the last executed line is centred."
 If PRESERVE is t, mark window size as preserved.  For more info read
 `window-preserve-size'.  If preserve is fixed the fix, then windows size.
 If HORIZONTAL is t, allow resizing the buffer width-wise."
-  (let ((fit-window-to-buffer-horizontally horizontal)
-        (window-resize-pixelwise t)
-        (window (get-buffer-window
-                           (gdb-get-buffer buffer))))
+  (when-let ((fit-window-to-buffer-horizontally horizontal)
+             (window-resize-pixelwise t)
+             (window (get-buffer-window
+                      (gdb-get-buffer buffer))))
     (fit-window-to-buffer window)
     (when preserve
       (window-preserve-size window horizontal t))))
@@ -225,22 +225,22 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   "Show buffer BUF, and make that window a side window.
 Read `display-buffer' for more information on the meaning of DIRECTION, SLOT and
 WIDTH."
-  (let ((buf-mode (with-current-buffer buf
-		            major-mode))
-	    (parent (or (car gdb-source-window-list)
-		            (car (gdb-x--get-non-dedicated-windows))))
-        (mode-line-fmt (when gdb-x-hide-mode-line
-                         '(mode-line-format . none))))
-    (display-buffer-in-direction buf
-				                 `((mode . ,buf-mode)
-                                   (dedicated . t)
-				                   (direction . ,direction)
-				                   (window . ,parent)
-				                   (window-width . ,width)
-                                   (window-parameters
-                                    .
-					                (,mode-line-fmt
-                                     (no-delete-other-windows . t)))))))
+  (when-let ((buf-mode (with-current-buffer buf
+		               major-mode))
+	       (parent (or (car gdb-source-window-list)
+		               (car (gdb-x--get-non-dedicated-windows))))
+           (mode-line-fmt (when gdb-x-hide-mode-line
+                            '(mode-line-format . none))))
+      (display-buffer-in-direction buf
+				                   `((mode . ,buf-mode)
+                                     (dedicated . t)
+				                     (direction . ,direction)
+				                     (window . ,parent)
+				                     (window-width . ,width)
+                                     (window-parameters
+                                      .
+					                  (,mode-line-fmt
+                                       (no-delete-other-windows . t)))))))
 
 (defun gdb-x--display-registers-buffer (&optional thread)
   "Display GDB disassembly information.
