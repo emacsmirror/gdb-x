@@ -72,30 +72,6 @@ Also ensure that the last executed line is centred."
 	        #'gdb-x--disassembly-highlight-and-recenter)
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Restore window configuration on exit. Taken from             ;;
-;; 'https://www.doof.me.uk/2019/06/09/making-emacs-gud-usable'. ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defconst gdb-x--gud-window-register ?c)
-
-(defun gdb-x-gud-quit ()
-  "Exit GUD."
-  (interactive)
-  (gud-basic-call "quit"))
-
-(add-hook 'gud-mode-hook
-	      #'(lambda (&rest _)
-	          (gud-tooltip-mode)
-	          (window-configuration-to-register gdb-x--gud-window-register)))
-
-(advice-add #'gud-sentinel :after
-	        #'(lambda (proc _)
-		        (when (memq (process-status proc) '(signal exit))
-                  (gdb-x-many-windows-mode -1)
-		          (jump-to-register gdb-x--gud-window-register)
-		          (bury-buffer))))
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Many windows arrangement. ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -277,10 +253,10 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   :lighter " gdb-many"
   (if gdb-x-many-windows-mode
       (progn
-        (when-let (gdb-src-buf (gdb-get-source-buffer))
-          (display-buffer-full-frame gdb-src-buf nil)
-          (setq gdb-source-window-list (list
-                                        (get-buffer-window gdb-src-buf))))
+        (let ((gdb-src-buf (gdb-get-source-buffer)))
+          (display-buffer-full-frame (or gdb-src-buf
+                                         (list-buffers-noselect))
+                                     nil))
         (add-to-list 'display-buffer-alist
                      gdb-x--display-terminal-buffer-action)
         (gdb-x-display-breakpoints-buffer)
@@ -295,9 +271,30 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
                                          display-buffer-alist))
       (set-frame-parameter
        nil 'window-state (window-state-get (frame-root-window nil)))
-      (let ((ignore-window-parameters t))
-        (delete-other-windows (window-main-window nil))
-        (select-window (gdb-x-display-gdb-buffer))))))
+      (when-let ((ignore-window-parameters t)
+                 (main-win (or (car gdb-source-window-list)
+                               (seq-find #'(lambda (win)
+                                             (not (gdb-buffer-p
+                                                   (window-buffer win))))
+                                         (window-list)))))
+        (delete-other-windows main-win))
+      (gdb-display-gdb-buffer))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Restore window configuration on exit. Taken from             ;;
+;; 'https://www.doof.me.uk/2019/06/09/making-emacs-gud-usable'. ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun gdb-x-gud-quit ()
+  "Exit GUD."
+  (interactive)
+  (gud-basic-call "quit"))
+
+(advice-add #'gud-sentinel :before
+	        #'(lambda (proc _)
+		        (when (and (memq (process-status proc) '(signal exit))
+                           gdb-x-many-windows-mode)
+                  (gdb-x-many-windows-mode -1))))
 
 
 (provide 'gdb-x)
