@@ -256,7 +256,8 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
         (let ((gdb-src-buf (gdb-get-source-buffer)))
           (display-buffer-full-frame (or gdb-src-buf
                                          (list-buffers-noselect))
-                                     nil))
+                                     nil)
+          (setq gdb-source-window-list (list (selected-window))))
         (add-to-list 'display-buffer-alist
                      gdb-x--display-terminal-buffer-action)
         (gdb-x-display-breakpoints-buffer)
