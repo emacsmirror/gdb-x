@@ -5,9 +5,13 @@ Extra utilities for improving the user interface of gdb-mi.el.
 
 This package improves upon the defaults provided by =gdb-mi=.
 
-- It ensures that sources lines to be executed are centred on the buffers displaying them.
+- It ensures that sources and assembly lines to be executed are centred on the buffers displaying them.
 - Restores the window configuration prior to starting the GDB session.
 - Updates =hl-line= in disassembly buffers.
+
+* Screenshots
+This screenshot shows ~gdb-x-many-windows-mode~:
+[[file:screenshot.png]]
 
 * Installation
 Add this to your configuration file:
