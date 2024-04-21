@@ -260,6 +260,15 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
                                              (not (gdb-buffer-p
                                                    (window-buffer win))))
                                          (window-list)))))
+        (dolist (gdb-buf-name '(gdb-breakpoints-buffer
+                                gdb-disassembly-buffer
+                                gdb-inferior-io
+                                gdb-locals-buffer
+                                gdb-registers-buffer
+                                gdb-stack-buffer))
+          (when-let ((gdb-buf (gdb-get-buffer gdb-buf-name)))
+            (delete-window (get-buffer-window gdb-buf))
+            (kill-buffer gdb-buf)))
         (delete-other-windows main-win))
       (gdb-display-gdb-buffer))))
 
