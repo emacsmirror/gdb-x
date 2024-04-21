@@ -251,26 +251,21 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
         (gdb-x-display-stack-buffer)
         (gdb-x-display-io-buffer)
         (select-window (gdb-x-display-gdb-buffer)))
-    (let ((window--sides-inhibit-check t))
-      (set-frame-parameter
-       nil 'window-state (window-state-get (frame-root-window nil)))
-      (when-let ((ignore-window-parameters t)
-                 (main-win (or (car gdb-source-window-list)
-                               (seq-find #'(lambda (win)
-                                             (not (gdb-buffer-p
-                                                   (window-buffer win))))
-                                         (window-list)))))
-        (dolist (gdb-buf-name '(gdb-breakpoints-buffer
-                                gdb-disassembly-buffer
-                                gdb-inferior-io
-                                gdb-locals-buffer
-                                gdb-registers-buffer
-                                gdb-stack-buffer))
-          (when-let ((gdb-buf (gdb-get-buffer gdb-buf-name)))
-            (delete-window (get-buffer-window gdb-buf))
-            (kill-buffer gdb-buf)))
-        (delete-other-windows main-win))
-      (gdb-display-gdb-buffer))))
+    ;; Delete buffers and windows displayed by `gdb-x-many-windows-mode'.
+    (dolist (gdb-buf-name '(gdb-breakpoints-buffer
+                            gdb-disassembly-buffer
+                            gdb-inferior-io
+                            gdb-locals-buffer
+                            gdb-registers-buffer
+                            gdb-stack-buffer))
+      (when-let ((gdb-buf (gdb-get-buffer gdb-buf-name)))
+        (delete-window (get-buffer-window gdb-buf))
+        (kill-buffer gdb-buf)))
+    ;; Delete and redisplay `gud-comint-buffer' so it is not forced in a side
+    ;; window.
+    (delete-window (get-buffer-window gud-comint-buffer))
+    (select-window (display-buffer-in-direction gud-comint-buffer
+                                                '((direction . leftmost))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
