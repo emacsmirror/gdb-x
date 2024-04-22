@@ -282,6 +282,9 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
                            gdb-x-many-windows-mode)
                   (gdb-x-many-windows-mode -1))))
 
+(advice-add #'gud-sentinel :after
+	        #'(lambda (&rest _)
+		        (kill-buffer gud-comint-buffer)))
 
 (provide 'gdb-x)
 ;;; gdb-x.el ends here.
