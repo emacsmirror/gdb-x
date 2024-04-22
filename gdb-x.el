@@ -252,15 +252,14 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
         (gdb-x-display-io-buffer)
         (select-window (gdb-x-display-gdb-buffer)))
     ;; Delete buffers and windows displayed by `gdb-x-many-windows-mode'.
-    (dolist (gdb-buf-name '(gdb-breakpoints-buffer
-                            gdb-disassembly-buffer
-                            gdb-inferior-io
-                            gdb-locals-buffer
-                            gdb-registers-buffer
-                            gdb-stack-buffer))
-      (when-let ((gdb-buf (gdb-get-buffer gdb-buf-name)))
-        (delete-window (get-buffer-window gdb-buf))
-        (kill-buffer gdb-buf)))
+    (dolist (gdb-x-display-fn '(gdb-x-display-breakpoints-buffer
+                                gdb-x-display-disassembly-buffer
+                                gdb-x-display-registers-buffer
+                                gdb-x-display-locals-buffer
+                                gdb-x-display-stack-buffer
+                                gdb-x-display-io-buffer))
+      (when-let ((gdb-buf-win (funcall gdb-x-display-fn)))
+        (delete-window gdb-buf-win)))
     ;; Delete and redisplay `gud-comint-buffer' so it is not forced in a side
     ;; window.
     (delete-window (get-buffer-window gud-comint-buffer))
