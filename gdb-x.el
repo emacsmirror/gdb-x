@@ -208,27 +208,27 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
 Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   (interactive)
   (let ((buffer 'gdb-disassembly-buffer))
-    (gdb-x--display-in-side-window (gdb-get-buffer-create buffer thread)
-			                       'right
-			                       0
-			                       80)
     (advice-add #'gdb-disassembly-handler-custom
                 :after
                 #'(lambda (&rest _)
-                    (gdb-x--fit-window-to-buffer buffer t t)))))
+                    (gdb-x--fit-window-to-buffer buffer t t)))
+    (gdb-x--display-in-side-window (gdb-get-buffer-create buffer thread)
+			                       'right
+			                       0
+			                       80)))
 
 (defun gdb-x-display-registers-buffer (&optional thread)
   "Display GDB disassembly information.
 Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   (interactive)
   (let ((buffer 'gdb-registers-buffer))
-    (gdb-x--display-buffer-in-direction (gdb-get-buffer-create buffer thread)
-			                            'right
-			                            17)
     (advice-add #'gdb-registers-handler-custom
                 :after
                 #'(lambda (&rest _)
-                    (gdb-x--fit-window-to-buffer buffer t t)))))
+                    (gdb-x--fit-window-to-buffer buffer t t)))
+    (gdb-x--display-buffer-in-direction (gdb-get-buffer-create buffer thread)
+			                            'right
+			                            17)))
 
 ;;;###autoload
 (define-minor-mode gdb-x-many-windows-mode
