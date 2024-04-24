@@ -262,9 +262,10 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
         (delete-window gdb-buf-win)))
     ;; Delete and redisplay `gud-comint-buffer' so it is not forced in a side
     ;; window.
-    (delete-window (get-buffer-window gud-comint-buffer))
-    (select-window (display-buffer-in-direction gud-comint-buffer
-                                                '((direction . leftmost))))))
+    (when (buffer-live-p gud-comint-buffer)
+      (delete-window (get-buffer-window gud-comint-buffer))
+      (select-window (display-buffer-in-direction gud-comint-buffer
+                                                  '((direction . leftmost)))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
