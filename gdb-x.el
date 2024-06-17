@@ -161,7 +161,7 @@ WIDTH."
   "Display the local variables of current GDB stack.
 Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   (interactive)
-  (let ((buffer (gdb-get-buffer-create 'gdb-locals-buffer thread)))
+  (when-let ((buffer (gdb-get-buffer-create 'gdb-locals-buffer thread)))
     (gdb-x--display-in-side-window buffer
 			                       'left
 			                       0
@@ -171,7 +171,7 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   "Display GDB breakpoints.
 Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   (interactive)
-  (let ((buffer (gdb-get-buffer-create 'gdb-breakpoints-buffer thread)))
+  (when-let ((buffer (gdb-get-buffer-create 'gdb-breakpoints-buffer thread)))
     (gdb-x--display-in-side-window buffer
 			                       'left
 			                       1
@@ -181,7 +181,7 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   "Display GDB backtrace for current stack.
 Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   (interactive)
-  (let ((buffer (gdb-get-buffer-create 'gdb-stack-buffer thread)))
+  (when-let ((buffer (gdb-get-buffer-create 'gdb-stack-buffer thread)))
     (gdb-x--display-in-side-window buffer
 			                       'left
 			                       2
@@ -211,7 +211,7 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   "Display GDB disassembly information.
 Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   (interactive)
-  (let ((buffer (gdb-get-buffer-create 'gdb-disassembly-buffer thread)))
+  (when-let ((buffer (gdb-get-buffer-create 'gdb-disassembly-buffer thread)))
     (advice-add #'gdb-disassembly-handler-custom
                 :after
                 #'gdb-x--fit-window-to-disas-buffer)
@@ -228,7 +228,7 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   "Display GDB disassembly information.
 Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   (interactive)
-  (let ((buffer (gdb-get-buffer-create 'gdb-registers-buffer thread)))
+  (when-let ((buffer (gdb-get-buffer-create 'gdb-registers-buffer thread)))
     (advice-add #'gdb-disassembly-handler-custom
                 :after
                 #'gdb-x--fit-window-to-reg-buffer)
@@ -246,12 +246,11 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
 (define-minor-mode gdb-x-many-windows-mode
   "Minor mode to toggle the display of all relevant GUD side windows."
   :global t
-  :group 'gdb-mi
-  :init-value nil ;; Don't enable the mode by default
+  :group 'gdb-x
   :lighter " gdb-many"
   (if gdb-x-many-windows-mode
       (progn
-        (let ((gdb-src-buf (gdb-get-source-buffer)))
+        (when-let ((gdb-src-buf (gdb-get-source-buffer)))
           (display-buffer-full-frame (or gdb-src-buf
                                          (list-buffers-noselect))
                                      nil)
@@ -305,8 +304,11 @@ ORIG-FUN is the adviced function and ARGS are its arguments."
              gdb-x-many-windows-mode)
     (gdb-x-many-windows-mode -1))
   (apply orig-fun args)
-  (delete-window (get-buffer-window gud-comint-buffer))
-  (kill-buffer gud-comint-buffer))
+  (when-let* ((buf gud-comint-buffer)
+              (win (prog1
+                       (get-buffer-window buf)
+                     (kill-buffer buf))))
+    (delete-window win)))
 
 (advice-add #'gud-sentinel :around #'gdb-x--gud-sentinel-cleanup)
 
