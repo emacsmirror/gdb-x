@@ -305,6 +305,7 @@ ORIG-FUN is the adviced function and ARGS are its arguments."
              gdb-x-many-windows-mode)
     (gdb-x-many-windows-mode -1))
   (apply orig-fun args)
+  (delete-window (get-buffer-window gud-comint-buffer))
   (kill-buffer gud-comint-buffer))
 
 (advice-add #'gud-sentinel :around #'gdb-x--gud-sentinel-cleanup)
