@@ -236,6 +236,12 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
 			                            'right
 			                            17)))
 
+(defun gdb-x--many-windows-remove-advice ()
+  "Remove advice added by `gdb-x'."
+  (advice-remove #'gdb-disassembly-handler-custom #'gdb-x--disassembly-highlight-and-recenter)
+  (advice-remove #'gdb-disassembly-handler-custom #'gdb-x--fit-window-to-disas-buffer)
+  (advice-remove #'gdb-disassembly-handler-custom #'gdb-x--fit-window-to-reg-buffer))
+
 ;;;###autoload
 (define-minor-mode gdb-x-many-windows-mode
   "Minor mode to toggle the display of all relevant GUD side windows."
@@ -271,7 +277,15 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
     (when (buffer-live-p gud-comint-buffer)
       (delete-window (get-buffer-window gud-comint-buffer))
       (select-window (display-buffer-in-direction gud-comint-buffer
-                                                  '((direction . leftmost)))))))
+                                                  '((direction . leftmost)))))
+    (gdb-x--many-windows-remove-advice)))
+
+(defun gdb-x-unload-function ()
+  "Disable `gdb-x' library.
+Called by `unload-feature'."
+  (gdb-x-many-windows-mode -1)
+  (advice-remove #'gud-sentinel #'gdb-x--gud-sentinel-cleanup)
+  (advice-remove #'gud-display-line #'gdb-x--gud-source-center))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
