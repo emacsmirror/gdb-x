@@ -48,9 +48,6 @@ executed."
           (goto-char (point-min)) (forward-line (1- line))
 	      (recenter))))))
 
-;; `recenter' GUD source buffer window.
-(advice-add #'gud-display-line :after #'gdb-x--gud-source-center)
-
 ;; Centre GUD source buffer window and enable `hl-line' if needed.
 (defun gdb-x--disassembly-highlight-and-recenter ()
   "Make sure that `hl-line' gets updated after updating disassembly buffer.
@@ -67,9 +64,6 @@ Also ensure that the last executed line is centred."
 	      (hl-line-highlight)))
 	    (goto-char gdb-disassembly-position)
 	    (recenter)))))
-
-(advice-add #'gdb-disassembly-handler-custom :after
-	        #'gdb-x--disassembly-highlight-and-recenter)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -238,7 +232,6 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
 
 (defun gdb-x--many-windows-remove-advice ()
   "Remove advice added by `gdb-x'."
-  (advice-remove #'gdb-disassembly-handler-custom #'gdb-x--disassembly-highlight-and-recenter)
   (advice-remove #'gdb-disassembly-handler-custom #'gdb-x--fit-window-to-disas-buffer)
   (advice-remove #'gdb-disassembly-handler-custom #'gdb-x--fit-window-to-reg-buffer))
 
@@ -279,13 +272,6 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
                                                   '((direction . leftmost)))))
     (gdb-x--many-windows-remove-advice)))
 
-(defun gdb-x-unload-function ()
-  "Disable `gdb-x' library.
-Called by `unload-feature'."
-  (gdb-x-many-windows-mode -1)
-  (advice-remove #'gud-sentinel #'gdb-x--gud-sentinel-cleanup)
-  (advice-remove #'gud-display-line #'gdb-x--gud-source-center))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Restore window configuration on exit. Taken from             ;;
@@ -310,7 +296,28 @@ ORIG-FUN is the adviced function and ARGS are its arguments."
                      (kill-buffer buf))))
     (delete-window win)))
 
-(advice-add #'gud-sentinel :around #'gdb-x--gud-sentinel-cleanup)
+;;;###autoload
+(define-minor-mode gdb-x-mode
+  "Minor mode to toggle the display of all relevant GUD side windows."
+  :global t
+  :group 'gdb-x
+  :lighter " gdb-many"
+  (if gdb-x-mode
+      (progn
+        (advice-add #'gdb-disassembly-handler-custom :after #'gdb-x--disassembly-highlight-and-recenter)
+        (advice-add #'gud-display-line :after #'gdb-x--gud-source-center)
+        (advice-add #'gud-sentinel :around #'gdb-x--gud-sentinel-cleanup))
+    (advice-remove #'gdb-disassembly-handler-custom #'gdb-x--disassembly-highlight-and-recenter)
+    (advice-remove #'gud-display-line #'gdb-x--gud-source-center)
+    (advice-remove #'gud-sentinel #'gdb-x--gud-sentinel-cleanup)))
+
+(defun gdb-x-unload-function ()
+  "Disable `gdb-x' library.
+Called by `unload-feature'."
+  (when gdb-x-many-windows-mode
+    (gdb-x-many-windows-mode -1))
+  (when gdb-x-mode
+    (gdb-x-mode -1)))
 
 
 (provide 'gdb-x)

@@ -18,12 +18,13 @@ Add this to your configuration file:
 #+begin_src emacs-lisp
 (use-package gdb-x
   :straight (:type git :host codeberg :repo "shepherd/gdb-x")
-  :demand t
   :general
   (:keymaps
    '(gud-mode-map gud-minor-mode-map)
    "C-c C-'" 'gdb-x-many-windows-mode
-   "C-c C-q" 'gdb-x-gud-quit))
+   "C-c C-q" 'gdb-x-gud-quit)
+  :init
+  (gdb-x-mode 1))
 #+end_src
 
 * Usage
