@@ -161,8 +161,8 @@ WIDTH."
   "Display the local variables of current GDB stack.
 Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   (interactive)
-  (let ((buffer 'gdb-locals-buffer))
-    (gdb-x--display-in-side-window (gdb-get-buffer-create buffer thread)
+  (let ((buffer (gdb-get-buffer-create 'gdb-locals-buffer thread)))
+    (gdb-x--display-in-side-window buffer
 			                       'left
 			                       0
 			                       0.15)))
@@ -171,8 +171,8 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   "Display GDB breakpoints.
 Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   (interactive)
-  (let ((buffer 'gdb-breakpoints-buffer))
-    (gdb-x--display-in-side-window (gdb-get-buffer-create buffer thread)
+  (let ((buffer (gdb-get-buffer-create 'gdb-breakpoints-buffer thread)))
+    (gdb-x--display-in-side-window buffer
 			                       'left
 			                       1
 			                       0.15)))
@@ -181,8 +181,8 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   "Display GDB backtrace for current stack.
 Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   (interactive)
-  (let ((buffer 'gdb-stack-buffer))
-    (gdb-x--display-in-side-window (gdb-get-buffer-create buffer thread)
+  (let ((buffer (gdb-get-buffer-create 'gdb-stack-buffer thread)))
+    (gdb-x--display-in-side-window buffer
 			                       'left
 			                       2
 			                       0.15)))
@@ -203,30 +203,36 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
 			                     1
 			                     0.5))
 
+(defun gdb-x--fit-window-to-disas-buffer (&rest _)
+  "Fit `gdb-disassembly-buffer' to window."
+  (gdb-x--fit-window-to-buffer 'gdb-disassembly-buffer t t))
+
 (defun gdb-x-display-disassembly-buffer (&optional thread)
   "Display GDB disassembly information.
 Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   (interactive)
-  (let ((buffer 'gdb-disassembly-buffer))
+  (let ((buffer (gdb-get-buffer-create 'gdb-disassembly-buffer thread)))
     (advice-add #'gdb-disassembly-handler-custom
                 :after
-                #'(lambda (&rest _)
-                    (gdb-x--fit-window-to-buffer buffer t t)))
-    (gdb-x--display-in-side-window (gdb-get-buffer-create buffer thread)
+                #'gdb-x--fit-window-to-disas-buffer)
+    (gdb-x--display-in-side-window buffer
 			                       'right
 			                       0
 			                       80)))
+
+(defun gdb-x--fit-window-to-reg-buffer (&rest _)
+  "Fit `gdb-registers-buffer' to window."
+  (gdb-x--fit-window-to-buffer 'gdb-registers-buffer t t))
 
 (defun gdb-x-display-registers-buffer (&optional thread)
   "Display GDB disassembly information.
 Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   (interactive)
-  (let ((buffer 'gdb-registers-buffer))
-    (advice-add #'gdb-registers-handler-custom
+  (let ((buffer (gdb-get-buffer-create 'gdb-registers-buffer thread)))
+    (advice-add #'gdb-disassembly-handler-custom
                 :after
-                #'(lambda (&rest _)
-                    (gdb-x--fit-window-to-buffer buffer t t)))
-    (gdb-x--display-buffer-in-direction (gdb-get-buffer-create buffer thread)
+                #'gdb-x--fit-window-to-reg-buffer)
+    (gdb-x--display-buffer-in-direction buffer
 			                            'right
 			                            17)))
 
@@ -277,15 +283,18 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   (interactive)
   (gud-basic-call "quit"))
 
-(advice-add #'gud-sentinel :before
-	        #'(lambda (proc _)
-		        (when (and (memq (process-status proc) '(signal exit))
-                           gdb-x-many-windows-mode)
-                  (gdb-x-many-windows-mode -1))))
+(defun gdb-x--gud-sentinel-cleanup (orig-fun &rest args)
+  "GUD sentinel cleanup wrapper function.
+This is meant to be used as an arround advice to `gud-sentinel'.
+ORIG-FUN is the adviced function and ARGS are its arguments."
+  (when (and (memq (process-status (car args)) '(signal exit))
+             gdb-x-many-windows-mode)
+    (gdb-x-many-windows-mode -1))
+  (apply orig-fun args)
+  (kill-buffer gud-comint-buffer))
 
-(advice-add #'gud-sentinel :after
-	        #'(lambda (&rest _)
-		        (kill-buffer gud-comint-buffer)))
+(advice-add #'gud-sentinel :around #'gdb-x--gud-sentinel-cleanup)
+
 
 (provide 'gdb-x)
 ;;; gdb-x.el ends here.
