@@ -14,10 +14,11 @@ This screenshot shows ~gdb-x-many-windows-mode~:
 [[file:screenshot.png]]
 
 * Installation
+This package is available on [[https://melpa.org/][MELPA]]!
+
 Add this to your configuration file:
 #+begin_src emacs-lisp
 (use-package gdb-x
-  :straight (:type git :host codeberg :repo "shepherd/gdb-x")
   :general
   (:keymaps
    '(gud-mode-map gud-minor-mode-map)
