@@ -243,7 +243,8 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   :lighter " gdb-many"
   (if gdb-x-many-windows-mode
       (progn
-        (when-let ((gdb-src-buf (gdb-get-source-buffer)))
+        (let ((gdb-src-buf (gdb-get-source-buffer))
+              (ignore-window-parameters t))
           (display-buffer-full-frame (or gdb-src-buf
                                          (list-buffers-noselect))
                                      nil)
