@@ -240,7 +240,7 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
   "Minor mode to toggle the display of all relevant GUD side windows."
   :global t
   :group 'gdb-x
-  :lighter " gdb-many"
+  :lighter " gdb-x-many"
   (if gdb-x-many-windows-mode
       (progn
         (let ((gdb-src-buf (gdb-get-source-buffer))
@@ -299,10 +299,12 @@ ORIG-FUN is the adviced function and ARGS are its arguments."
 
 ;;;###autoload
 (define-minor-mode gdb-x-mode
-  "Minor mode to toggle the display of all relevant GUD side windows."
+  "Minor mode to advice GDB functions to:
+- Recenter current line after each step, including assemlby buffer line.
+- Highlight assembly buffer line if `hl-line-mode' is enabled."
   :global t
   :group 'gdb-x
-  :lighter " gdb-many"
+  :lighter " gdb-x"
   (if gdb-x-mode
       (progn
         (advice-add #'gdb-disassembly-handler-custom :after #'gdb-x--disassembly-highlight-and-recenter)
