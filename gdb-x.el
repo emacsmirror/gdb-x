@@ -4,7 +4,7 @@
 ;;
 ;; Author: Sergio Pastor Pérez <sergio.pastorperez@outlook.es>
 ;; Version: 0.0.1
-;; URL: https://codeberg.org/shepherd/gdb-x
+;; URL: https://codeberg.org/pastor/gdb-x
 ;; Keywords: extensions
 ;; Package-Requires: ((emacs "29.1"))
 
