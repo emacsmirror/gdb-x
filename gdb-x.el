@@ -3,7 +3,7 @@
 ;; Copyright © 2023 Sergio Pastor Pérez
 ;;
 ;; Author: Sergio Pastor Pérez <sergio.pastorperez@outlook.es>
-;; Version: 0.0.1
+;; Version: 0.0.2
 ;; URL: https://codeberg.org/pastor/gdb-x
 ;; Keywords: extensions
 ;; Package-Requires: ((emacs "29.1"))
