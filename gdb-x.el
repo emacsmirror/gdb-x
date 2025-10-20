@@ -34,6 +34,10 @@
 (require 'hl-line)
 
 
+(defcustom gdb-x-fit-resized-dissasembly-buffer nil
+  "Whether to readjust disassembly window to fit its contents."
+  :type 'boolean)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Recenter buffer when stepping and ensure `hl-line' is updated if enabled. ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -199,7 +203,8 @@ Read `gdb-get-buffer-create' for more information on the meaning of THREAD."
 
 (defun gdb-x--fit-window-to-disas-buffer (&rest _)
   "Fit `gdb-disassembly-buffer' to window."
-  (gdb-x--fit-window-to-buffer 'gdb-disassembly-buffer t t))
+  (when gdb-x-fit-resized-dissasembly-buffer
+    (gdb-x--fit-window-to-buffer 'gdb-disassembly-buffer t t)))
 
 (defun gdb-x-display-disassembly-buffer (&optional thread)
   "Display GDB disassembly information.
